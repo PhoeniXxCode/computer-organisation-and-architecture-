@@ -1,0 +1,82 @@
+.MODEL SMALL
+.STACK 100h
+.DATA
+SRC   DB 'HELLO','$'
+DST   DB 6 DUP('$')
+SRC2  DB 'WORLD','$'
+DST2  DB 'ABCDE','$'
+MSG1  DB 0Dh,0Ah,'Before Transfer:','$'
+MSG2  DB 0Dh,0Ah,'After Transfer:','$'
+MSG3  DB 0Dh,0Ah,'Before Exchange:','$'
+MSG4  DB 0Dh,0Ah,'After Exchange:','$'
+
+.CODE
+START:
+    MOV AX, @DATA
+    MOV DS, AX
+
+    ; --- Display Before Transfer ---
+    MOV AH, 09h
+    LEA DX, MSG1
+    INT 21h
+    MOV AH, 09h
+    LEA DX, SRC
+    INT 21h
+
+    ; --- Transfer SRC → DST ---
+    MOV CX, 5          ; Number of bytes
+    LEA SI, SRC
+    LEA DI, DST
+TRANSFER_LOOP:
+    MOV AL, [SI]
+    MOV [DI], AL
+    INC SI
+    INC DI
+    LOOP TRANSFER_LOOP
+
+    ; --- Display After Transfer ---
+    MOV AH, 09h
+    LEA DX, MSG2
+    INT 21h
+    MOV AH, 09h
+    LEA DX, DST
+    INT 21h
+
+    ; --- Display Before Exchange ---
+    MOV AH, 09h
+    LEA DX, MSG3
+    INT 21h
+    MOV AH, 09h
+    LEA DX, SRC2
+    INT 21h
+    MOV AH, 09h
+    LEA DX, DST2
+    INT 21h
+
+    ; --- Exchange SRC2 ↔ DST2 ---
+    MOV CX, 5
+    LEA SI, SRC2
+    LEA DI, DST2
+EXCHANGE_LOOP:
+    MOV AL, [SI]
+    XCHG AL, [DI]
+    MOV [SI], AL
+    INC SI
+    INC DI
+    LOOP EXCHANGE_LOOP
+
+    ; --- Display After Exchange ---
+    MOV AH, 09h
+    LEA DX, MSG4
+    INT 21h
+    MOV AH, 09h
+    LEA DX, SRC2
+    INT 21h
+    MOV AH, 09h
+    LEA DX, DST2
+    INT 21h
+
+    ; --- Exit Program ---
+    MOV AH, 4Ch
+    INT 21h
+END START
