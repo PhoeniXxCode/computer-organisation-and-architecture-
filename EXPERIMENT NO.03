@@ -1,0 +1,62 @@
+CODE 1
+; Program: HEX to BCD Conversion
+; Description: Converts a hexadecimal number into its BCD equivalent.
+.model small
+.stack 100h
+.data
+hex_num db 98h ; Example HEX number = 152 decimal
+bcd_h db ?     ; Hundreds
+bcd_t db ?     ; Tens
+bcd_o db ?     ; Ones
+.code
+main proc
+    mov ax, @data
+    mov ds, ax
+    mov al, hex_num ; Load HEX number in AL
+    mov ah, 0       ; Clear AH (AX = 0098h)
+    mov bx, 10      ; Divisor = 10 (for decimal separation)
+
+    ; First divide to get Ones
+    div bl          ; AX / 10 → AL=Quotient, AH=Remainder
+    mov bcd_o, ah   ; Store Ones digit
+
+    mov ah, 0       ; Clear AH before next division
+    ; mov al, al    ; Removed redundant instruction
+    div bl          ; Divide quotient by 10
+    mov bcd_t, ah   ; Store Tens
+    mov bcd_h, al   ; Store Hundreds
+
+    ; Done. (At this point, BCD digits are in bcd_h, bcd_t, bcd_o)
+    mov ah, 4ch
+    int 21h
+main endp
+end main
+
+CODE 2
+; Program: ASCII to BCD Conversion
+; Description: Converts 2 ASCII digits (like '4' '5') into a single BCD byte (45h).
+.model small
+.stack 100h
+.data
+ascii_num db '4','5' ; ASCII digits (e.g. "45")
+bcd_num db ?          ; BCD output
+.code
+main proc
+    mov ax, @data
+    mov ds, ax
+
+    mov al, ascii_num     ; Load first ASCII digit '4'
+    sub al, 30h           ; Convert ASCII to numeric (AL = 4)
+    shl al, 4             ; Shift left 4 bits → AL = 40h (tens place)
+
+    mov bl, ascii_num+1   ; Load second ASCII digit '5'
+    sub bl, 30h           ; Convert to numeric (BL = 5)
+
+    or al, bl             ; Combine tens and ones → AL = 45h
+    mov bcd_num, al       ; Store as BCD
+
+    mov ah, 4ch
+    int 21h
+main endp
+end main
+
