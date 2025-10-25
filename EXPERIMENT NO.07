@@ -1,0 +1,134 @@
+1. Shapes
+;----------------------------------------------------------
+; Program: Draw Rectangle and Triangle using BIOS (INT 10h)
+; Assembler: MASM
+;----------------------------------------------------------
+.model small
+.stack 100h
+.code
+main proc
+    mov ax, @data
+    mov ds, ax
+
+    ;--------------------------
+    ; Set video mode 13h (320x200, 256 colors)
+    ;--------------------------
+    mov ah, 00h
+    mov al, 13h
+    int 10h
+
+    ;--------------------------
+    ; Draw Rectangle
+    ;--------------------------
+    mov al, 04h         ; Color red
+    mov ah, 0Ch         ; Plot pixel
+    mov cx, 50          ; X start
+rect_row:
+    mov dx, 50          ; Y start
+rect_col:
+    int 10h
+    inc dx
+    cmp dx, 150         ; Rectangle height
+    jle rect_col
+    inc cx
+    cmp cx, 150         ; Rectangle width
+    jle rect_row
+
+    ;--------------------------
+    ; Draw Triangle
+    ;--------------------------
+    mov al, 02h         ; Color green
+    mov ah, 0Ch         ; Plot pixel
+    mov dx, 150         ; Base Y
+    mov cx, 200         ; Base X (center)
+
+triangle_row:
+    push cx
+    mov bx, cx
+    mov di, dx
+triangle_col:
+    int 10h             ; Plot pixel
+    inc bx
+    cmp bx, cx + 10     ; Width of current row
+    jl triangle_col
+    pop cx
+    dec dx               ; Move up one row
+    add cx, 1            ; Shrink width gradually
+    cmp dx, 100          ; Triangle top Y
+    jge triangle_row
+
+    ;--------------------------
+    ; Wait for keypress before exit
+    ;--------------------------
+    mov ah, 00h
+    int 16h
+
+    ;--------------------------
+    ; Set text mode back
+    ;--------------------------
+    mov ah, 00h
+    mov al, 03h
+    int 10h
+
+    mov ah, 4Ch
+    int 21h
+main endp
+end main
+
+2. File OPERATIONS:
+;----------------------------------------------------------
+; Program: File Operations using DOS Interrupts
+; Assembler: MASM
+;----------------------------------------------------------
+.model small
+.stack 100h
+.data
+filename    db 'demo.txt',0
+msg         db 'File Operation Successful!$'
+buffer      db 'Hello, this is a file created in MASM.$'
+filehandle  dw ?
+
+.code
+main proc
+    mov ax, @data
+    mov ds, ax
+
+    ;--------------------------------------
+    ; Create a new file
+    ;--------------------------------------
+    mov ah, 3Ch         ; DOS Create File function
+    mov cx, 00h         ; Normal file attribute
+    lea dx, filename
+    int 21h
+    mov filehandle, ax  ; Store returned file handle
+
+    ;--------------------------------------
+    ; Write to file
+    ;--------------------------------------
+    mov ah, 40h         ; DOS Write File function
+    mov bx, filehandle
+    lea dx, buffer
+    mov cx, 35          ; Number of bytes to write
+    int 21h
+
+    ;--------------------------------------
+    ; Close file
+    ;--------------------------------------
+    mov ah, 3Eh         ; DOS Close File function
+    mov bx, filehandle
+    int 21h
+
+    ;--------------------------------------
+    ; Display confirmation message
+    ;--------------------------------------
+    mov ah, 09h         ; DOS Display String
+    lea dx, msg
+    int 21h
+
+    ;--------------------------------------
+    ; Exit program
+    ;--------------------------------------
+    mov ah, 4Ch
+    int 21h
+main endp
+end main
