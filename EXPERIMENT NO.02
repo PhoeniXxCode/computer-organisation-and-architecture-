@@ -1,0 +1,49 @@
+.model small
+.stack 100h
+
+.data
+num1 db 10h     ; First operand = 16 (hex)
+num2 db 04h     ; Second operand = 4 (hex)
+result db ?     ; To store results
+
+.code
+main:
+    mov ax, @data
+    mov ds, ax
+
+    ; --- ADD operation ---
+    mov al, num1
+    add al, num2        ; AL = 10h + 04h = 14h
+    mov result, al      ; Store 14h in result
+
+    ; --- SUB operation ---
+    mov al, num1
+    sub al, num2        ; AL = 10h - 04h = 0Ch
+    mov result, al      ; Store 0Ch in result
+
+    ; --- MUL operation (unsigned) ---
+    mov al, num1
+    mov bl, num2
+    mul bl              ; AX = AL * BL = 10h * 04h = 40h (64 decimal)
+
+    ; --- DIV operation (unsigned) ---
+    mov ax, 0
+    mov al, num1        ; Dividend = 10h (16)
+    mov bl, num2        ; Divisor = 04h (4)
+    div bl              ; AL = 16 / 4 = 4, AH = remainder = 0
+
+    ; --- AND operation ---
+    mov al, num1
+    and al, num2        ; AL = 10h AND 04h = 00h
+    mov result, al
+
+    ; --- OR operation ---
+    mov al, num1
+    or al, num2         ; AL = 10h OR 04h = 14h
+    mov result, al
+
+    ; Stop program
+    mov ah, 4ch
+    int 21h
+
+end main
