@@ -1,0 +1,59 @@
+;----------------------------------------------------------
+; Program: Password Detection
+; Assembler: MASM/TASM
+;----------------------------------------------------------
+.model small
+.stack 100h
+.data
+password    db '1234'          ; Predefined password (without $)
+input_buff  db 20, ?, 20 dup(0) ; Max length=20, actual length=?, buffer
+msg_prompt  db 'Enter Password: $'
+msg_grant   db 'Access Granted$'
+msg_deny    db 'Access Denied$'
+
+.code
+main proc
+    mov ax, @data
+    mov ds, ax              ; Initialize data segment
+
+    ; --- Display prompt ---
+    lea dx, msg_prompt
+    mov ah, 09h             ; DOS print string
+    int 21h
+
+    ; --- Read input from user ---
+    lea dx, input_buff
+    mov ah, 0Ah             ; DOS buffered input
+    int 21h
+
+    ; --- Compare input with password ---
+    lea si, input_buff+2    ; Start of typed string
+    lea di, password         ; Start of predefined password
+check_loop:
+    mov al, [si]            ; Input character
+    mov bl, [di]            ; Password character
+    cmp al, bl
+    jne wrong_password       ; Mismatch → wrong password
+    cmp al, 0Dh             ; Enter key (end of input)
+    je correct_password      ; End of input → correct
+    inc si
+    inc di
+    jmp check_loop
+
+correct_password:
+    lea dx, msg_grant
+    mov ah, 09h
+    int 21h
+    jmp exit_program
+
+wrong_password:
+    lea dx, msg_deny
+    mov ah, 09h
+    int 21h
+
+exit_program:
+    mov ah, 4Ch             ; DOS terminate program
+    int 21h
+main endp
+end main
+
