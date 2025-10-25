@@ -1,0 +1,62 @@
+.model small
+.stack 100h
+.data
+msg1 db 'Enter first 2-digit BCD number: $'
+msg2 db 0Dh,0Ah,'Enter second 2-digit BCD number: $'
+msg3 db 0Dh,0Ah,'Sum is: $'
+
+.code
+main:
+    mov ax, @data
+    mov ds, ax
+
+    lea dx, msg1
+    mov ah, 09h
+    int 21h
+
+    call read_digit
+    mov bl, al
+    call read_digit
+    shl bl, 4
+    or bl, al
+
+    lea dx, msg2
+    mov ah, 09h
+    int 21h
+
+    call read_digit
+    mov bh, al
+    call read_digit
+    shl bh, 4
+    or bh, al
+
+    mov al, bl
+    add al, bh
+    daa
+
+    lea dx, msg3
+    mov ah, 09h
+    int 21h
+
+    mov ah, 0
+    aam
+    add ah, 30h
+    mov dl, ah
+    mov ah, 02h
+    int 21h
+
+    add al, 30h
+    mov dl, al
+    mov ah, 02h
+    int 21h
+
+    mov ah, 4Ch
+    int 21h
+
+read_digit:
+    mov ah, 01h
+    int 21h
+    sub al, 30h
+    ret
+
+end main
