@@ -1,0 +1,150 @@
+;
+; Program: String Operations using DOS Interrupts
+; Assembler: MASM
+; Description: Performs input, display, length, concatenation,
+; and comparison of strings using INT 21H.
+;
+.model small
+.stack 100h
+.data
+msg1 db 'Enter First String: $'
+msg2 db 0Dh,0Ah,'Enter Second String: $'
+msg3 db 0Dh,0Ah,'The First String is: $'
+msg4 db 0Dh,0Ah,'The Second String is: $'
+msg5 db 0Dh,0Ah,'Concatenated String: $'
+msg6 db 0Dh,0Ah,'Both Strings are Equal.$'
+msg7 db 0Dh,0Ah,'Strings are Not Equal.$'
+msg8 db 0Dh,0Ah,'Length of First String: $'
+num_msg db 0Dh,0Ah,'$'
+
+; Input buffers (first byte=max length, second byte=actual length)
+str1 db 20, ?, 20 dup('$')
+str2 db 20, ?, 20 dup('$')
+concat db 40 dup('$') ; For concatenation result
+
+.code
+main proc
+mov ax, @data
+mov ds, ax
+
+; Input First String
+mov ah, 09h
+lea dx, msg1
+int 21h
+mov ah, 0Ah
+lea dx, str1
+int 21h
+
+; Input Second String
+mov ah, 09h
+lea dx, msg2
+int 21h
+mov ah, 0Ah
+lea dx, str2
+int 21h
+
+; Display Both Strings
+mov ah, 09h
+lea dx, msg3
+int 21h
+mov ah, 09h
+lea dx, str1+2
+int 21h
+
+mov ah, 09h
+lea dx, msg4
+int 21h
+mov ah, 09h
+lea dx, str2+2
+int 21h
+
+; Find Length of First String
+mov ah, 09h
+lea dx, msg8
+int 21h
+mov al, str1+1   ; Length stored in 2nd byte of buffer
+call DISP_NUM
+
+; Concatenate Strings
+mov si, offset str1+2 ; Source1 start
+mov di, offset concat ; Destination start
+mov cx, str1+1        ; Length of first string
+copy_str1:
+cmp cx, 0
+je next_string
+mov al, [si]
+mov [di], al
+inc si
+inc di
+dec cx
+jmp copy_str1
+
+next_string:
+mov cx, str2+1        ; Length of second string
+mov si, offset str2+2
+copy_str2:
+cmp cx, 0
+je concat_done
+mov al, [si]
+mov [di], al
+inc si
+inc di
+dec cx
+jmp copy_str2
+
+concat_done:
+mov byte ptr [di], '$' ; Terminate with $
+mov ah, 09h
+lea dx, msg5
+int 21h
+mov ah, 09h
+lea dx, concat
+int 21h
+
+; Compare Strings
+mov si, offset str1+2
+mov di, offset str2+2
+mov cx, str1+1        ; Length of first string
+mov dx, str2+1        ; Length of second string
+cmp cx, dx
+jne not_equal          ; If lengths differ, not equal
+
+compare_loop:
+cmp cx, 0
+je end_compare         ; All characters matched
+mov al, [si]
+mov bl, [di]
+cmp al, bl
+jne not_equal
+inc si
+inc di
+dec cx
+jmp compare_loop
+
+end_compare:
+mov ah, 09h
+lea dx, msg6
+int 21h
+jmp done
+
+not_equal:
+mov ah, 09h
+lea dx, msg7
+int 21h
+
+; End Program
+done:
+mov ah, 4Ch
+int 21h
+main endp
+
+; Subroutine to Display Single-Digit Number (AL)
+DISP_NUM proc
+add al, 30h
+mov dl, al
+mov ah, 02h
+int 21h
+ret
+DISP_NUM endp
+
+end main
