@@ -1,0 +1,76 @@
+; Program: Booth's Multiplication Algorithm
+; Assembler: MASM
+; Description: Signed multiplication of two 8-bit numbers using Booth's algorithm
+.model small
+.stack 100h
+.data
+M db 5        ; Multiplicand
+Q db -3       ; Multiplier
+count db 8    ; Number of bits
+A db 0        ; Accumulator
+Qm1 db 0      ; Q(-1)
+result dw 0   ; Final 16-bit result
+.code
+main proc
+    mov ax, @data
+    mov ds, ax
+
+    mov al, 0        ; Clear accumulator
+    mov A, al
+    mov cl, count    ; Counter
+
+booth_loop:
+    ; Examine Q0 and Q(-1)
+    mov al, Q
+    and al, 1        ; AL = Q0
+    mov bl, Qm1
+    cmp al, 0
+    je check10
+    cmp bl, 0
+    je addM
+    jmp shift
+
+check10:
+    cmp bl, 0
+    je shift
+    jmp subM
+
+addM:
+    mov al, A
+    add al, M
+    mov A, al
+    jmp shift
+
+subM:
+    mov al, A
+    sub al, M
+    mov A, al
+
+shift:
+    ; Arithmetic right shift A:Q:Q(-1)
+    ; Combine A, Q, Qm1 into 16-bit AX and 8-bit Q
+    ; Shift A right
+    mov al, A
+    sar al, 1
+    rcl Q, 1        ; Rotate through carry into Q
+    mov A, al
+
+    ; Update Qm1 = previous Q0
+    mov al, Q
+    and al, 1
+    mov Qm1, al
+
+    ; Decrement counter
+    dec cl
+    jnz booth_loop
+
+    ; Store result (A in high byte, Q in low byte)
+    mov ah, A
+    mov al, Q
+    mov result, ax
+
+    ; Exit program
+    mov ax, 4C00h
+    int 21h
+main endp
+end main
