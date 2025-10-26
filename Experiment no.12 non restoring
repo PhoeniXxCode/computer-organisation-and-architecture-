@@ -1,0 +1,62 @@
+; Program: Non-Restoring Division Algorithm
+; Assembler: MASM
+; Description: Performs signed division of 8-bit numbers
+
+.model small
+.stack 100h
+.data
+M db 3        ; Divisor
+Q db 13       ; Dividend
+A db 0        ; Accumulator
+count db 8    ; Number of bits
+.code
+
+main proc
+    mov ax, @data
+    mov ds, ax
+
+    mov cl, count   ; Counter for 8 iterations
+
+division_loop:
+    ; --- Left shift (A,Q) together ---
+    shl A, 1
+    rcl Q, 1
+
+    ; --- Perform operation based on sign of A ---
+    test A, 80h
+    jz pos
+    ; A < 0 → A = A + M
+    add A, M
+    jmp update_q
+
+pos:
+    ; A >= 0 → A = A - M
+    sub A, M
+
+update_q:
+    ; Set Q0 based on sign of A
+    test A, 80h
+    jz set_1
+    ; A < 0 → Q0 = 0
+    and Q, 0FEh
+    jmp skip
+
+set_1:
+    or Q, 01h
+
+skip:
+    dec cl
+    jnz division_loop
+
+    ; --- Correction if remainder negative ---
+    test A, 80h
+    jz done
+    add A, M
+
+done:
+    ; --- Program exit ---
+    mov ah, 4Ch
+    int 21h
+
+main endp
+end main
