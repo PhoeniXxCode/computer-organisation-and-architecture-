@@ -1,0 +1,64 @@
+.model small
+.stack 100h
+.code
+main proc
+    ; --- Set text mode 80x25 ---
+    mov ax, 0003h
+    int 10h
+
+    ; --- Show cursor normally ---
+    mov ah, 01h
+    mov ch, 06h
+    mov cl, 07h
+    int 10h
+
+    ; --- Set cursor position ---
+    mov ah, 02h
+    mov bh, 00h
+    mov dh, 10
+    mov dl, 20
+    int 10h
+
+    ; --- Write character 'N' ---
+    mov ah, 09h
+    mov al, 'N'
+    mov bh, 00h
+    mov bl, 0Ah
+    mov cx, 1
+    int 10h
+
+    ; --- Wait for key ---
+    mov ah, 00h
+    int 16h
+
+    ; --- Change cursor to block ---
+    mov ah, 01h
+    mov ch, 00h
+    mov cl, 07h
+    int 10h
+
+    ; --- Wait for key ---
+    mov ah, 00h
+    int 16h
+
+    ; --- Hide cursor ---
+    mov ah, 01h
+    mov ch, 20h
+    mov cl, 00h
+    int 10h
+
+    ; --- Wait before exit ---
+    mov ah, 00h
+    int 16h
+
+    ; --- Restore normal cursor ---
+    mov ah, 01h
+    mov ch, 06h
+    mov cl, 07h
+    int 10h
+
+    ; --- Exit program ---
+    mov ax, 4C00h
+    int 21h
+main endp
+end main
