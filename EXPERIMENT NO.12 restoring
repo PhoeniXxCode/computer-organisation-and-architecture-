@@ -1,0 +1,51 @@
+; Program: Restoring Division Algorithm
+; Assembler: MASM
+; Description: Performs unsigned division of two 8-bit numbers
+;              Result: Quotient in Q, Remainder in A
+
+.model small
+.stack 100h
+.data
+M db 3       ; Divisor
+Q db 13      ; Dividend
+A db 0       ; Accumulator
+count db 8   ; Number of bits
+
+.code
+main proc
+    mov ax, @data
+    mov ds, ax
+
+    mov cl, count  ; Counter for 8 iterations
+
+division_loop:
+    ; --- Left shift (A,Q) together ---
+    shl A, 1       ; Shift accumulator left
+    rcl Q, 1       ; Rotate through carry into Q
+
+    ; --- Subtract divisor ---
+    mov al, A
+    sub al, M
+    mov A, al
+
+    jc restore     ; If borrow (negative), restore
+
+    ; --- If no borrow, set Q0 = 1 ---
+    or Q, 01h
+    jmp skip_restore
+
+restore:
+    ; --- Restore A, set Q0 = 0 ---
+    add A, M
+    and Q, 0FEh
+
+skip_restore:
+    dec cl
+    jnz division_loop
+
+    ; --- Program exit ---
+    mov ah, 4Ch
+    int 21h
+
+main endp
+end main
